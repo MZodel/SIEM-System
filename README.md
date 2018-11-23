@@ -2,6 +2,7 @@
 CEP-basiertes SIEM-System mit Esper
 
 =========================================
+
 Termine: 
 
 18. Dezember 2018: 20-Minuten Präsentation (Verbesserter und up-to-date Projektplan, was haben wir gemacht, was müssen wir noch machen, Ziele des Projektes, Erklärung des Codes? Alles was man so bis dahin präsentieren kann)
@@ -13,6 +14,7 @@ Termine:
 15. März 2019: Deadline für schriftliche Abgabe
 
 =========================================
+
 Projektplan (nicht feste):
 
 WBS	    Aufgabe	                                              Einteilung
@@ -35,5 +37,5 @@ WBS	    Aufgabe	                                              Einteilung
 3.3	    Test mit Angriffe und sicheren Clients	              4
 3.4	    Andere mögliche Testszenarien	                        4
 4	      Verbesserung und Erweiterung des Systems	            4
-================================================================================================================================
+=========================================
 
