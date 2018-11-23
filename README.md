@@ -17,9 +17,12 @@ Termine:
 
 Projektplan (nicht feste):
 
-WBS     Aufgabe                                               Einteilung
+
 
 WBS	    Aufgabe	                                              Einteilung
+
+1       Aufbau des SIEM-Systems                               4
+
 
 1	      Aufbau des SIEM-Systems	                              4
 1.1	    Apache HTTP-Server aufstellen	                        1
