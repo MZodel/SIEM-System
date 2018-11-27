@@ -15,7 +15,7 @@ public class PersonEventMain {
 		System.out.println(String.format("Name: %s, Age: %d", name, age));
 		});
 		engine.getEPRuntime().sendEvent(new PersonEvent("Peter", 10));
-		System.out.println("Test");
+		System.out.println("Test123");
 	}
 
 }
