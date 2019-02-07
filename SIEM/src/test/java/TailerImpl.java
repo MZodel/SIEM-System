@@ -90,44 +90,55 @@ public class TailerImpl {
         epl = "create schema attack as (source string)";
         engine.getEPAdministrator().createEPL(epl);
         
-
+        //Collect fails in window
         cepAdm.createEPL("create window failWindow#length(1000000) as Failed");
+        //Collect success in window
         cepAdm.createEPL("create window successWindow#length(1000000) as Success");
         
+        //fails>19 partitioned by source
         cepAdm.createEPL("create window fbs#lastevent as failedBySource");
+        //success partitioned by source which failed>19 times
         cepAdm.createEPL("create window sbs#lastevent as successBySource");
+        //fails>19 partitioned by user
         cepAdm.createEPL("create window fbu#lastevent as failedByUser");
+        //collect source and number of attempts which failed to login with specific user
         cepAdm.createEPL("create window fbus#length(1000000) as failedBySource");
+        //collect number of successful attempts which failed to login with specific user
         cepAdm.createEPL("create window safbus#length(1000000) as successAndFailsBySource");
         
+        //calculate rate of failure and send as event for source with more than 19 fails
         cepAdm.createEPL("create window suspSources#lastevent as suspiciousSources");
+        //calculate rate of failure and send as event for user with more than 19 fails
         cepAdm.createEPL("create window suspSources2#length(1000000) as suspiciousSources");
+        //in case of rate of failure is >= 0.95 classify as attack
         cepAdm.createEPL("create window att#lastevent as attack");
         cepAdm.createEPL("create window attu#length(1000000) as attack");
         
-        cepAdm.createEPL("insert into failWindow select source, user from Failed").addListener(new AListener());
+        cepAdm.createEPL("insert into failWindow select source, user from Failed").addListener(new inputListener());
         
-        cepAdm.createEPL("insert into successWindow select source, user from Success").addListener(new AListener());
+        cepAdm.createEPL("insert into successWindow select source, user from Success").addListener(new inputListener());
         
-        cepAdm.createEPL("insert into fbs select source, Count(*) as fails from failWindow group by source having Count(*)>19");
-        cepAdm.createEPL("insert into fbu select user, Count(*) as fails from failWindow group by user having Count(*)>19");
+        cepAdm.createEPL("insert into fbs select source, Count(*) as fails from failWindow group by source having Count(*)>19").addListener(new suspListener());
+        cepAdm.createEPL("insert into fbu select user, Count(*) as fails from failWindow group by user having Count(*)>19").addListener(new suspUserListener());
         cepAdm.createEPL("on fbs insert into sbs select (select source from fbs), Count(*) as success from successWindow where successWindow.source=(select source from fbs) ");
         cepAdm.createEPL("on fbu insert into fbus select source, Count(*) as fails from failWindow  where failWindow.user =(select user from fbu) group by source");
-        cepAdm.createEPL("insert into safbus select fbus.source as source, fbus.fails as fails, (select count(*) from successWindow where successWindow.source=fbus.source) as success from fbus").addListener(new AListener());
-        cepAdm.createEPL("select count(*) from fbus").addListener(new AListener());
+        cepAdm.createEPL("insert into safbus select fbus.source as source, fbus.fails as fails, (select count(*) from successWindow where successWindow.source=fbus.source) as success from fbus").addListener(new inputListener());
+        cepAdm.createEPL("select count(*) from fbus").addListener(new inputListener());
         
-        cepAdm.createEPL("on sbs insert into suspSources select fbs.source as source, (fbs.fails/(fbs.fails+(select success from sbs))) as failrate from fbs");
-        cepAdm.createEPL("on safbus insert into suspSources2 select safbus.source as source, safbus.fails/(safbus.fails+safbus.success) as failrate from safbus").addListener(new AListener());
+        cepAdm.createEPL("on sbs insert into suspSources select fbs.source as source, (fbs.fails/(fbs.fails+(select success from sbs))) as failrate from fbs").addListener(new rofListener());
+        cepAdm.createEPL("on safbus insert into suspSources2 select safbus.source as source, safbus.fails/(safbus.fails+safbus.success) as failrate from safbus").addListener(new rofListener());
+        //resets
         cepAdm.createEPL("on safbus delete from safbus");
         cepAdm.createEPL("on safbus delete from fbus");
         
-        cepAdm.createEPL("on suspSources insert into att select suspSources.source as source from suspSources where suspSources.failrate>0.95");
-        cepAdm.createEPL("on suspSources2 insert into attu select suspSources2.source as source from suspSources2 where suspSources2.failrate>0.95").addListener(new AListener());
+        cepAdm.createEPL("on suspSources insert into att select suspSources.source as source from suspSources where suspSources.failrate>0.95").addListener(new attackListener());
+        cepAdm.createEPL("on suspSources2 insert into attu select suspSources2.source as source from suspSources2 where suspSources2.failrate>0.95").addListener(new attackListener());
         
-        cepAdm.createEPL("on att delete from failWindow where failWindow.source =(select source from fbs)").addListener(new AListener());
-        cepAdm.createEPL("on att delete from successWindow where successWindow.source =(select source from fbs)").addListener(new AListener());
-        cepAdm.createEPL("on attu delete from successWindow where successWindow.source=(select source from fbus)").addListener(new AListener());
-        cepAdm.createEPL("on attu delete from failWindow where failWindow.source=(select attu.source from attu)").addListener(new AListener());
+        //removing relevant data from window to avoid repeating alerts
+        cepAdm.createEPL("on att delete from failWindow where failWindow.source =(select source from fbs)").addListener(new inputListener());
+        cepAdm.createEPL("on att delete from successWindow where successWindow.source =(select source from fbs)").addListener(new inputListener());
+        cepAdm.createEPL("on attu delete from successWindow where successWindow.source=(select source from fbus)").addListener(new inputListener());
+        cepAdm.createEPL("on attu delete from failWindow where failWindow.source=(select attu.source from attu)").addListener(new inputListener());
         
         cepAdm.createEPL("on suspSources2 delete from suspSources2");
         cepAdm.createEPL("on att select att.source from att");
@@ -136,16 +147,7 @@ public class TailerImpl {
     }
     
     
-	public static class AListener implements UpdateListener {
-        public void update(EventBean[] newData, EventBean[] oldData) {
-        	for(int i=0;i<newData.length;i++)
-        		System.out.println(newData[i].getUnderlying());
-//        	System.out.println(newData.length);
-        	System.out.println();
-        }
-	}
-	
-    static void initHTTPflood(EPServiceProvider engine) {
+	static void initHTTPflood(EPServiceProvider engine) {
 
 		//EPServiceProvider engine = EPServiceProviderManager.getDefaultProvider();
 
