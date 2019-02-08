@@ -42,6 +42,7 @@ public class TailerImpl {
         // start HTTP Listener
         //
         String httpFilePath = "C:/Apache24/logs/access.log";
+        //String httpFilePath = "C:/xampp/apache/logs/access.log";
         File httpLogFile = new File(httpFilePath);
 
         LogTailer httpTailer = new LogTailer(httpLogFile);
@@ -149,118 +150,122 @@ public class TailerImpl {
     
 	static void initHTTPflood(EPServiceProvider engine) {
 
-		//EPServiceProvider engine = EPServiceProviderManager.getDefaultProvider();
 
 		engine.getEPAdministrator().getConfiguration().addEventType(EPLhttpEventConfig.class);
 
-		// List of different IPs accessing the same document in a given timeframe
-		String timeBetweenArrivalOfRequestsForSameWantedDocuments = "5 sec";
-		String timeFrameOfAllSimiliarRequests = "10 min";
+		
+		// Get all IPs which access the same document in a short time with another IP in a time frame
+		String timeBetweenArrivalOf_ep_multipleIPSameDoc = "5 sec";
+		String timeFrameOf_ep_multipleIPSameDoc = "1 min";
 
-		String ep_sameDoc = "insert into list_of_different_ips_accessing_same_document "
-				+ "select a.sourceip as source1, b.sourceip as source2, a.wantedDocument as wantedDoc, a.timeStamp as time, a.counter as currentCount "
-				+ "from pattern [every a=EPLhttpEventConfig -> b=EPLhttpEventConfig(a.sourceip != b.sourceip"
-				+ ", a.wantedDocument = b.wantedDocument) " + "where timer:within("
-				+ timeBetweenArrivalOfRequestsForSameWantedDocuments + ")" + "]#time(" + timeFrameOfAllSimiliarRequests
-				+ ")";
+		String ep_multipleIPSameDoc = "insert into list_of_different_ips_accessing_same_document select a.sourceip as source1, b.sourceip as source2, a.wantedDocument as wantedDoc, a.timeStamp as time, a.counter as currentCount from pattern [every a=EPLhttpEventConfig -> b=EPLhttpEventConfig(a.sourceip != b.sourceip, a.wantedDocument = b.wantedDocument) " + "where timer:within(" + timeBetweenArrivalOf_ep_multipleIPSameDoc + ")" + "]#time(" + timeFrameOf_ep_multipleIPSameDoc + ")";
 
-		EPStatement statement_ep_sameDoc = engine.getEPAdministrator().createEPL(ep_sameDoc);
+		EPStatement statement_ep_multipleIPSameDoc = engine.getEPAdministrator().createEPL(ep_multipleIPSameDoc);
 
-		statement_ep_sameDoc.addListener((newData, oldData) -> {
+		statement_ep_multipleIPSameDoc.addListener((newData, oldData) -> {
 			for (int i = 0; i < newData.length; i++) {
 				String source1 = (String) newData[i].get("source1");
 				String source2 = (String) newData[i].get("source2");
 				String wantedDoc = (String) newData[i].get("wantedDoc");
-				LocalTime time = (LocalTime) newData[i].get("time");
+				String time = (String) newData[i].get("time").toString();
 				long currentCount = (long) newData[i].get("currentCount");
 				
-				System.out.println(
-						String.format("DEBUG Same Document: %d %s IP1: %s, IP2: %s, Doc: %s", currentCount, time, source1, source2, wantedDoc));
+				System.out.println(String.format("DEBUG #%d - (%.11s) - %s accessed at the same time by %s and %s", currentCount, time, wantedDoc, source1, source2));
 			}
 		});
 
-		// Check if ep_sameDoc happens too often
-		int maxCountOfSameDoc = 50;
+		
+		// Check if ep_multipleIPSameDoc happens too often for a single IP in a time frame
+		int maxCountOf_ep_multipleIPSameDoc_TooOften = 10;
+		String timeFrameOf_ep_multipleIPSameDoc_TooOften = "1 min";
 
-		String ep_sameDocTooOften = "select a.source1 as source1, a.source2 as source2, a.wantedDoc as wantedDoc "
-				+ "from pattern [every a=list_of_different_ips_accessing_same_document] "
-				+ "group by a.source1 having count(a.source1) > " + maxCountOfSameDoc;
-		EPStatement statement_ep_sameDocTooOften = engine.getEPAdministrator().createEPL(ep_sameDocTooOften);
+		String ep_multipleIPSameDoc_TooOften = "select a.source1 as source1, a.source2 as source2, a.wantedDoc as wantedDoc, a.time as time, a.currentCount as currentCount from pattern [every a=list_of_different_ips_accessing_same_document]#time(" + timeFrameOf_ep_multipleIPSameDoc_TooOften + ") group by a.source1 having count(a.source1) > " + maxCountOf_ep_multipleIPSameDoc_TooOften;
+		EPStatement statement_ep_multipleIPSameDoc_TooOften = engine.getEPAdministrator().createEPL(ep_multipleIPSameDoc_TooOften);
 
-		statement_ep_sameDocTooOften.addListener((newData, oldData) -> {
+		statement_ep_multipleIPSameDoc_TooOften.addListener((newData, oldData) -> {
 			for (int i = 0; i < newData.length; i++) {
 				String source1 = (String) newData[i].get("source1");
 				String source2 = (String) newData[i].get("source2");
-				System.out.println(
-						String.format("%s and %s access (different) documents simultaneously too often, probably Bots",
-								source1, source2));
+				String time = (String) newData[i].get("time").toString();
+				long currentCount = (long) newData[i].get("currentCount");
+				
+				System.out.println(String.format("#%d - (%.11s) - %s and %s have accessed the same documents >" + maxCountOf_ep_multipleIPSameDoc_TooOften + " times", currentCount, time, source1, source2));
 			}
 		});
 
-		// Get, single IP, single target
+		
+		// Get all IPs which access the same document multiple times in a row
+		String timeBetweenArrivalOf_ep_singleIPSingleDoc = "5 sec";
+		String timeFrameOf_ep_singleIPSingleDoc = "1 min";
 
-		String timeBetweenArrivalOfRequestsForSameIPSameTarget = "5 sec";
-		String timeFrameOfRequests = "10 min";
+		String ep_singleIPSingleDoc = "insert into list_of_same_ip_same_document select a.sourceip as source1, a.wantedDocument as wantedDoc, a.timeStamp as time, a.counter as currentCount from pattern [every a=EPLhttpEventConfig -> b=EPLhttpEventConfig(a.sourceip = b.sourceip, a.wantedDocument = b.wantedDocument) " + "where timer:within(" + timeBetweenArrivalOf_ep_singleIPSingleDoc + ")" + "]#time(" + timeFrameOf_ep_singleIPSingleDoc + ")";
+		EPStatement statement_ep_singleIPSingleDoc = engine.getEPAdministrator().createEPL(ep_singleIPSingleDoc);
 
-		String ep_sameIPsameTarget = "insert into list_of_same_ip_same_document "
-				+ "select a.sourceip as source1, a.wantedDocument as wantedDoc, a.timeStamp as time, a.counter as currentCount "
-				+ "from pattern [every a=EPLhttpEventConfig -> b=EPLhttpEventConfig(a.sourceip = b.sourceip"
-				+ ", a.wantedDocument = b.wantedDocument) " + "where timer:within("
-				+ timeBetweenArrivalOfRequestsForSameIPSameTarget + ")" + "]#time(" + timeFrameOfRequests + ")";
-		EPStatement statement_ep_sameIPsameTarget = engine.getEPAdministrator().createEPL(ep_sameIPsameTarget);
-
-		statement_ep_sameIPsameTarget.addListener((newData, oldData) -> {
+		statement_ep_singleIPSingleDoc.addListener((newData, oldData) -> {
 			for (int i = 0; i < newData.length; i++) {
 				String source1 = (String) newData[i].get("source1");
 				String wantedDoc = (String) newData[i].get("wantedDoc");
-				//LocalTime time = (LocalTime) newData[i].get("time");
-				long currentCounter = (long) newData[i].get("currentCount");
+				String time = (String) newData[i].get("time").toString();
+				long currentCount = (long) newData[i].get("currentCount");
 
-				System.out.println(
-						String.format(" %d DEBUG Same IP Same Document: IP: %s, Document: %s", currentCounter, source1, wantedDoc));
+				System.out.println(String.format("DEBUG #%d - (%.11s) - %s accessed by %s twice in a row", currentCount, time, wantedDoc, source1));
 			}
 		});
 
-		// Check if sameIPSameTarget happens too often
-		int maxCountOfSameIPSameTargetTooOften = 30;
+		
+		// Check if ep_singleIPSingleDoc happens too often for a single IP in a time frame
+		int maxCountOf_ep_singleIPSingleDoc_TooOften = 30;
+		String timeFrameOf_ep_singleIPSingleDoc_TooOften = "1 min";
 
-		String ep_sameIPSameTargetTooOften = "select a.source1 as source1, a.wantedDoc as wantedDoc "
-				+ "from pattern [every a=list_of_same_ip_same_document] "
-				+ "group by a.source1 having count(a.source1) > " + maxCountOfSameIPSameTargetTooOften;
-		EPStatement statement_ep_sameIPSameTargetTooOften = engine.getEPAdministrator()
-				.createEPL(ep_sameIPSameTargetTooOften);
+		String ep_singleIPSingleDoc_TooOften = "select a.source1 as source1, a.wantedDoc as wantedDoc, a.time as time, a.currentCount as currentCount from pattern [every a=list_of_same_ip_same_document]#time(" + timeFrameOf_ep_singleIPSingleDoc_TooOften + ") group by a.source1 having count(a.source1) > " + maxCountOf_ep_singleIPSingleDoc_TooOften;
+		EPStatement statement_ep_singleIPSingleDoc_TooOften = engine.getEPAdministrator().createEPL(ep_singleIPSingleDoc_TooOften);
 
-		statement_ep_sameIPSameTargetTooOften.addListener((newData, oldData) -> {
+		statement_ep_singleIPSingleDoc_TooOften.addListener((newData, oldData) -> {
 			for (int i = 0; i < newData.length; i++) {
 				String source1 = (String) newData[i].get("source1");
 				String wantedDoc = (String) newData[i].get("wantedDoc");
-				System.out.println(String.format("IP: %s is accessing %s too often", source1, wantedDoc));
+				String time = (String) newData[i].get("time").toString();
+				long currentCount = (long) newData[i].get("currentCount");
+				
+				System.out.println(String.format("#%d - (%.11s) - %s accessed by %s >" + maxCountOf_ep_singleIPSingleDoc_TooOften + " times", currentCount, time, wantedDoc, source1));
 			}
 		});
 
-		// Check if ep_sameDocSingleDocTooOften happens too often
-		int maxCountOfsameDocSingleDocTooOften = 20;
+		
+		// Check if there are 2 or more IPs which target a single document too often
+		int maxCountOf_ep_multipleIPSingleDoc_TooOften = 20;
+		String timeFrameOf_ep_multipleIPSingleDoc_TooOften = "1 min";
+		
+		String ep_multipleIPSingleDoc_TooOften = "select a.source1 as source1, a.source2 as source2, a.wantedDoc as wantedDoc, a.time as time, a.currentCount as currentCount from pattern [every a=list_of_different_ips_accessing_same_document]#time(" + timeFrameOf_ep_multipleIPSingleDoc_TooOften + ") group by a.wantedDoc, a.source1 having count(a.wantedDoc) > " + maxCountOf_ep_multipleIPSingleDoc_TooOften;
+		EPStatement statement_ep_multipleIPSingleDoc_TooOften = engine.getEPAdministrator().createEPL(ep_multipleIPSingleDoc_TooOften);
 
-		String ep_sameDocSingleDocTooOften = "select a.source1 as source1, a.source2 as source2, a.wantedDoc as wantedDoc "
-				+ "from pattern [every a=list_of_different_ips_accessing_same_document] "
-				+ "group by a.wantedDoc, a.source1 having count(a.wantedDoc) > " + maxCountOfsameDocSingleDocTooOften;
-		EPStatement statement_ep_sameDocSingleDocTooOften = engine.getEPAdministrator()
-				.createEPL(ep_sameDocSingleDocTooOften);
-
-		statement_ep_sameDocSingleDocTooOften.addListener((newData, oldData) -> {
+		statement_ep_multipleIPSingleDoc_TooOften.addListener((newData, oldData) -> {
 			for (int i = 0; i < newData.length; i++) {
 				String source1 = (String) newData[i].get("source1");
 				String source2 = (String) newData[i].get("source2");
 				String wantedDoc = (String) newData[i].get("wantedDoc");
-				System.out.println(
-						String.format("%s and %s access %s too often, probably bots", source1, source2, wantedDoc));
+				String time = (String) newData[i].get("time").toString();
+				long currentCount = (long) newData[i].get("currentCount");
+				
+				System.out.println(String.format("#%d - (%.11s) - %s accessed by %s and %s >" + maxCountOf_ep_multipleIPSingleDoc_TooOften + " times", currentCount, time, wantedDoc, source1, source2));
 			}
 		});
 
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 		// Get, single IP, different targets
-
 		String timeBetweenArrivalOfRequestsForSameWantedDocumentsForSameIPSpam = "5 sec";
-		String timeFrameOfAllSimiliarRequestsForSameIPSpam = "10 min";
+		String timeFrameOfAllSimiliarRequestsForSameIPSpam = "1 min";
 		String maxCountOfSingleIPAccess = "50";
 
 		String ep_sameIPDifTarget = "select a.sourceip as source1 " + "from pattern [every a=EPLhttpEventConfig "
@@ -279,7 +284,7 @@ public class TailerImpl {
 		// Get, different IPs, single target
 
 		String timeBetweenArrivalOfRequestsForSameWantedDocumentsForDifIPSpam = "5 sec";
-		String timeFrameOfAllSimiliarRequestsForDifIPSpam = "10 min";
+		String timeFrameOfAllSimiliarRequestsForDifIPSpam = "1 min";
 		String maxCountOfDifIPAccess = "50";
 
 		String ep_difIPSameTarget = "select a.sourceip as source1, a.wantedDocument as wantedDoc "
@@ -301,7 +306,7 @@ public class TailerImpl {
 		// Get, different IPs, different targets
 
 		String timeBetweenArrivalOfRequestsForSameWantedDocumentsForDifIPDifTargetSpam = "5 sec";
-		String timeFrameOfAllSimiliarRequestsForDifIPDifTargetSpam = "10 min";
+		String timeFrameOfAllSimiliarRequestsForDifIPDifTargetSpam = "1 min";
 		String maxCountOfDifIPDifTargetAccess = "50";
 
 		String ep_difIPDifTarget = "select a.sourceip as source1, a.wantedDocument as wantedDoc "
