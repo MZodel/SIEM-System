@@ -158,7 +158,7 @@ public class TailerImpl {
 		String timeBetweenArrivalOf_ep_multipleIPSameDoc = "5 sec";
 		String timeFrameOf_ep_multipleIPSameDoc = "1 min";
 
-		String ep_multipleIPSameDoc = "insert into list_of_different_ips_accessing_same_document select a.sourceip as source1, b.sourceip as source2, a.wantedDocument as wantedDoc, a.timeStamp as time, a.counter as currentCount from pattern [every a=EPLhttpEventConfig -> b=EPLhttpEventConfig(a.sourceip != b.sourceip, a.wantedDocument = b.wantedDocument) " + "where timer:within(" + timeBetweenArrivalOf_ep_multipleIPSameDoc + ")" + "]#time(" + timeFrameOf_ep_multipleIPSameDoc + ")";
+		String ep_multipleIPSameDoc = "insert into list_of_different_ips_accessing_same_document select a.sourceip as source1, b.sourceip as source2, a.wantedDocument as wantedDoc, a.timeStamp as time, a.counter as currentCount from pattern [every a=EPLhttpEventConfig -> b=EPLhttpEventConfig(a.sourceip != b.sourceip, a.wantedDocument = b.wantedDocument) where timer:within(" + timeBetweenArrivalOf_ep_multipleIPSameDoc + ")]#time(" + timeFrameOf_ep_multipleIPSameDoc + ")";
 
 		EPStatement statement_ep_multipleIPSameDoc = engine.getEPAdministrator().createEPL(ep_multipleIPSameDoc);
 
@@ -198,7 +198,7 @@ public class TailerImpl {
 		String timeBetweenArrivalOf_ep_singleIPSingleDoc = "5 sec";
 		String timeFrameOf_ep_singleIPSingleDoc = "1 min";
 
-		String ep_singleIPSingleDoc = "insert into list_of_same_ip_same_document select a.sourceip as source1, a.wantedDocument as wantedDoc, a.timeStamp as time, a.counter as currentCount from pattern [every a=EPLhttpEventConfig -> b=EPLhttpEventConfig(a.sourceip = b.sourceip, a.wantedDocument = b.wantedDocument) " + "where timer:within(" + timeBetweenArrivalOf_ep_singleIPSingleDoc + ")" + "]#time(" + timeFrameOf_ep_singleIPSingleDoc + ")";
+		String ep_singleIPSingleDoc = "insert into list_of_same_ip_same_document select a.sourceip as source1, a.wantedDocument as wantedDoc, a.timeStamp as time, a.counter as currentCount from pattern [every a=EPLhttpEventConfig -> b=EPLhttpEventConfig(a.sourceip = b.sourceip, a.wantedDocument = b.wantedDocument) where timer:within(" + timeBetweenArrivalOf_ep_singleIPSingleDoc + ")]#time(" + timeFrameOf_ep_singleIPSingleDoc + ")";
 		EPStatement statement_ep_singleIPSingleDoc = engine.getEPAdministrator().createEPL(ep_singleIPSingleDoc);
 
 		statement_ep_singleIPSingleDoc.addListener((newData, oldData) -> {
@@ -232,7 +232,7 @@ public class TailerImpl {
 		});
 
 		
-		// Check if there are 2 or more IPs which target a single document too often
+		// Check if there are 2 or more IPs which access a single document together too often
 		int maxCountOf_ep_multipleIPSingleDoc_TooOften = 20;
 		String timeFrameOf_ep_multipleIPSingleDoc_TooOften = "1 min";
 		
@@ -251,79 +251,63 @@ public class TailerImpl {
 			}
 		});
 
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		// Get, single IP, different targets
-		String timeBetweenArrivalOfRequestsForSameWantedDocumentsForSameIPSpam = "5 sec";
-		String timeFrameOfAllSimiliarRequestsForSameIPSpam = "1 min";
-		String maxCountOfSingleIPAccess = "50";
 
-		String ep_sameIPDifTarget = "select a.sourceip as source1 " + "from pattern [every a=EPLhttpEventConfig "
-				+ "where timer:within(" + timeBetweenArrivalOfRequestsForSameWantedDocumentsForSameIPSpam + ")"
-				+ "]#time(" + timeFrameOfAllSimiliarRequestsForSameIPSpam + ") "
-				+ "group by a.sourceip having count(a.sourceip) > " + maxCountOfSingleIPAccess;
-		EPStatement statement_ep_sameIPDifTarget = engine.getEPAdministrator().createEPL(ep_sameIPDifTarget);
+		// Check if a single IP accesses different documents too often in a time frame
+		String timeBetweenArrivalOf_ep_singleIPDifDoc = "5 sec";
+		String timeFrameOf_ep_singleIPDifDoc = "1 min";
+		String maxCountOf_ep_singleIPDifDoc = "50";
 
-		statement_ep_sameIPDifTarget.addListener((newData, oldData) -> {
+		String ep_singleIPDifDoc = "select a.sourceip as source1, a.counter as currentCount, a.timeStamp as time from pattern [every a=EPLhttpEventConfig where timer:within(" + timeBetweenArrivalOf_ep_singleIPDifDoc + ")]#time(" + timeFrameOf_ep_singleIPDifDoc + ") group by a.sourceip having count(a.sourceip) > " + maxCountOf_ep_singleIPDifDoc;
+		EPStatement statement_ep_singleIPDifDoc = engine.getEPAdministrator().createEPL(ep_singleIPDifDoc);
+
+		statement_ep_singleIPDifDoc.addListener((newData, oldData) -> {
 			for (int i = 0; i < newData.length; i++) {
 				String source1 = (String) newData[i].get("source1");
-				System.out.println(String.format("%s is accessing different documents too often", source1));
+				String time = (String) newData[i].get("time").toString();
+				long currentCount = (long) newData[i].get("currentCount");
+				
+				System.out.println(String.format("#%d - (%.11s) - %s accessed different documents >" + maxCountOf_ep_singleIPDifDoc + " times", currentCount, time, source1));
 			}
 		});
 
-		// Get, different IPs, single target
 
-		String timeBetweenArrivalOfRequestsForSameWantedDocumentsForDifIPSpam = "5 sec";
-		String timeFrameOfAllSimiliarRequestsForDifIPSpam = "1 min";
-		String maxCountOfDifIPAccess = "50";
+		// Check if different IPs access a single document too often in a time frame
 
-		String ep_difIPSameTarget = "select a.sourceip as source1, a.wantedDocument as wantedDoc "
-				+ "from pattern [every a=EPLhttpEventConfig " + "where timer:within("
-				+ timeBetweenArrivalOfRequestsForSameWantedDocumentsForDifIPSpam + ")" + "]#time("
-				+ timeFrameOfAllSimiliarRequestsForDifIPSpam + ") "
-				+ "group by a.wantedDocument having count(a.wantedDocument) > " + maxCountOfDifIPAccess;
-		EPStatement statement_ep_difIPSameTarget = engine.getEPAdministrator().createEPL(ep_difIPSameTarget);
+		String timeBetweenArrivalOf_ep_difIPSingleDoc = "5 sec";
+		String timeFrameOf_ep_difIPSingleDoc = "1 min";
+		String maxCountOf_ep_difIPSingleDoc = "50";
 
-		statement_ep_difIPSameTarget.addListener((newData, oldData) -> {
+		String ep_difIPSingleDoc = "select a.sourceip as source1, a.wantedDocument as wantedDoc, a.counter as currentCount, a.timeStamp as time from pattern [every a=EPLhttpEventConfig where timer:within(" + timeBetweenArrivalOf_ep_difIPSingleDoc + ")]#time(" + timeFrameOf_ep_difIPSingleDoc + ") group by a.wantedDocument having count(a.wantedDocument) > " + maxCountOf_ep_difIPSingleDoc;
+		EPStatement statement_ep_difIPSingleDoc = engine.getEPAdministrator().createEPL(ep_difIPSingleDoc);
+
+		statement_ep_difIPSingleDoc.addListener((newData, oldData) -> {
 			for (int i = 0; i < newData.length; i++) {
 				String wantedDoc = (String) newData[i].get("wantedDoc");
-				System.out.println(String.format(
-						"Document %s is being accessed too often in a short timeframe. If no other warnings exist, consider reducing simultaneous user access",
-						wantedDoc));
+				String time = (String) newData[i].get("time").toString();
+				long currentCount = (long) newData[i].get("currentCount");
+				
+				System.out.println(String.format("#%d - (%.11s) - %s accessed >" + maxCountOf_ep_difIPSingleDoc + " times", currentCount, time, wantedDoc));
 			}
 		});
 
-		// Get, different IPs, different targets
 
-		String timeBetweenArrivalOfRequestsForSameWantedDocumentsForDifIPDifTargetSpam = "5 sec";
-		String timeFrameOfAllSimiliarRequestsForDifIPDifTargetSpam = "1 min";
-		String maxCountOfDifIPDifTargetAccess = "50";
+		// Check if different IPs access different documents too often in a time frame
 
-		String ep_difIPDifTarget = "select a.sourceip as source1, a.wantedDocument as wantedDoc "
-				+ "from pattern [every a=EPLhttpEventConfig " + "where timer:within("
-				+ timeBetweenArrivalOfRequestsForSameWantedDocumentsForDifIPDifTargetSpam + ")" + "]#time("
-				+ timeFrameOfAllSimiliarRequestsForDifIPDifTargetSpam + ") " + "having count(*) > "
-				+ maxCountOfDifIPDifTargetAccess;
-		EPStatement statement_ep_difIPDifTarget = engine.getEPAdministrator().createEPL(ep_difIPDifTarget);
+		String timeBetweenArrivalOf_ep_difIPDifDoc = "5 sec";
+		String timeFrameOf_ep_difIPDifDoc = "1 min";
+		String maxCountOf_ep_difIPDifDoc = "50";
 
-		statement_ep_difIPDifTarget.addListener((newData, oldData) -> {
+		String ep_difIPDifDoc = "select a.sourceip as source1, a.wantedDocument as wantedDoc, a.counter as currentCount, a.timeStamp as time from pattern [every a=EPLhttpEventConfig where timer:within(" + timeBetweenArrivalOf_ep_difIPDifDoc + ")]#time(" + timeFrameOf_ep_difIPDifDoc + ") having count(*) > " + maxCountOf_ep_difIPDifDoc;
+		EPStatement statement_ep_difIPDifDoc = engine.getEPAdministrator().createEPL(ep_difIPDifDoc);
+
+		statement_ep_difIPDifDoc.addListener((newData, oldData) -> {
 			for (int i = 0; i < newData.length; i++) {
-				System.out.println(String.format(
-						"Too many IPs are accessing different documents in a short timeframe. If no other warnings exist, consider reducing simultaneous user access"));
+				String time = (String) newData[i].get("time").toString();
+				long currentCount = (long) newData[i].get("currentCount");
+				
+				System.out.println(String.format("#%d - (%.11s) - General accesses >" + maxCountOf_ep_difIPDifDoc + " times", currentCount, time));
 			}
 		});
-
-		//return engine.getEPRuntime();
     }
     
     

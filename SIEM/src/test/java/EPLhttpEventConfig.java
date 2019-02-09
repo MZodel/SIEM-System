@@ -14,17 +14,16 @@ public class EPLhttpEventConfig {
 	// Give a warning that those IPs are probably bots
 
 	// Get, single IP, single target 																			DONE: ep_singleIPSingleDoc + ep_singleIPSingleDoc_TooOften
-	// Get, single IP, always different targets DONE: Statement 6
+	// Get, single IP, always different targets 																DONE: ep_singleIPDifDoc								
 	// Get, specific different IPs multiple times, single target 												DONE: ep_multipleIPSameDoc + ep_multipleIPSingleDoc_TooOften
 	// Get, specific different IPs multiple times, different targets but all IPs choose same 					DONE: ep_multipleIPSameDoc + ep_multipleIPSameDoc_TooOften
-	// Get, specific different IPs multiple times, always different targets DONE: Same as Statement 6
-	// Get, different IPs each once, single target DONE: Statement 7
-	// Get, different IPs each once, different targets but all IPs choose same DONE: Same as Statement 7+8
-	// Get, different IPs each once, always different targets DONE: Statement 8
+	// Get, specific different IPs multiple times, always different targets 									DONE: ep_singleIPDifDoc
+	// Get, different IPs each once, single target 																DONE: ep_difIPSingleDoc
+	// Get, different IPs each once, different targets but all IPs choose same 									DONE: ep_difIPSingleDoc + ep_difIPDifDoc
+	// Get, different IPs each once, always different targets 													DONE: ep_difIPDifDoc
 
 	// Difference between post/get? Is it worth it to differentiate?
-	// => Post is heavier, duplicate all Get methods for Post, but with lower
-	// threshold
+	// => Post is heavier, duplicate all Get methods for Post, but with lower threshold
 
 	private String type; // GET or POST
 	private String sourceip; // example: "192.168.0.1"
