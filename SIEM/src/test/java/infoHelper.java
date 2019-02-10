@@ -1,20 +1,21 @@
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 
 public class infoHelper {
 	  
 	  private static infoHelper instance;
+	  //private LocalTime timeStamp;
+	  private final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss");
+	  private final DateTimeFormatter dtfMilli = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
+
 	  private long counter = 0;
 
 	  private infoHelper () {}
-	  // Eine Zugriffsmethode auf Klassenebene, welches dir '''einmal''' ein konkretes 
-	  // Objekt erzeugt und dieses zurückliefert.
-	  // Durch 'synchronized' wird sichergestellt dass diese Methode nur von einem Thread 
-	  // zu einer Zeit durchlaufen wird. Der nächste Thread erhält immer eine komplett 
-	  // initialisierte Instanz.
 	  
 	  public static synchronized infoHelper getInstance () {
 		  
 	    if (infoHelper.instance == null) {
-	    	infoHelper.instance = new infoHelper ();
+	    	infoHelper.instance = new infoHelper();
 	      
 	    }
 	    return infoHelper.instance;
@@ -23,6 +24,12 @@ public class infoHelper {
 	  public long getIncrementedCounter() {
 		  return this.counter++;
 	  }
-
 	  
+	  public String getTimeStamp() {
+		  return LocalTime.now().format(dtf);
+	  }
+	  
+	  public String getTimeStampPrecise() {
+		  return LocalTime.now().format(dtfMilli);
+	  }
 	}
