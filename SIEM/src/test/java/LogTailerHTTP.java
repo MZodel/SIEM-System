@@ -12,7 +12,6 @@ public class LogTailerHTTP implements LogTailerListener {
 
         String badLogin = "password incorrect!";
         String correctLogin = "Logged on";
-        int counter = 1;
 
         public void update(String line){
         	
@@ -49,10 +48,10 @@ public class LogTailerHTTP implements LogTailerListener {
 
             //System.out.println("HTTP whole line: " + line);
             
+            infoHelper helper = infoHelper.getInstance();
             
-            
-            LocalTime timeStamp = LocalTime.now();
-            long counter = infoHelper.getInstance().getIncrementedCounter();
+            String timeStamp = helper.getTimeStamp();
+            long counter = helper.getIncrementedCounter();
             
             System.out.println("TimeStamp: " + timeStamp);
             System.out.println("Counter: " + counter);
