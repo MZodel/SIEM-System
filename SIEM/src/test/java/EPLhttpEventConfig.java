@@ -30,10 +30,10 @@ public class EPLhttpEventConfig {
 	private String wantedDocument; // example: either "info.html" or "/info.html", NOT both, maybe cut off data from
 									// post, e.g. "/action_page.php?foo=bar&bar=baz", cut off "?" onwards
 	
-	private LocalTime timeStamp;
+	private String timeStamp;
 	private long counter;
 
-	public EPLhttpEventConfig(String type, String sourceip, String wantedDocument, LocalTime timeStamp, long counter) {
+	public EPLhttpEventConfig(String type, String sourceip, String wantedDocument, String timeStamp, long counter) {
 		if (type == "GET" || type == "POST") {
 			this.type = type;
 		} else {
@@ -69,11 +69,11 @@ public class EPLhttpEventConfig {
 		this.type = type;
 	}
 	
-	public void setTimeStamp(LocalTime timeStamp) {
+	public void setTimeStamp(String timeStamp) {
 		this.timeStamp = timeStamp;
 	}
 	
-	public LocalTime getTimeStamp() {
+	public String getTimeStamp() {
 		return timeStamp;
 	}
 	

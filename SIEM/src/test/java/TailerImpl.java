@@ -1,9 +1,6 @@
 //import LogTailer
 import java.io.*;
-import java.util.Random;
-import javax.swing.text.html.HTMLDocument.Iterator;
 import com.espertech.esper.client.*;
-import java.time.LocalTime;
 
 
 
@@ -57,6 +54,7 @@ public class TailerImpl {
         
     }
     
+    // initialize Esper FTP Brute Force events
   
     static void initFTPbruteForce(EPServiceProvider engine) {
     	
@@ -147,6 +145,7 @@ public class TailerImpl {
         //return cepRT;
     }
     
+    // initialize Esper HTTP Flood events
     
 	static void initHTTPflood(EPServiceProvider engine) {
 
@@ -167,7 +166,7 @@ public class TailerImpl {
 				String source1 = (String) newData[i].get("source1");
 				String source2 = (String) newData[i].get("source2");
 				String wantedDoc = (String) newData[i].get("wantedDoc");
-				String time = (String) newData[i].get("time").toString();
+				String time = (String) newData[i].get("time");
 				long currentCount = (long) newData[i].get("currentCount");
 				
 				System.out.println(String.format("DEBUG #%d - (%.11s) - %s accessed at the same time by %s and %s", currentCount, time, wantedDoc, source1, source2));
@@ -186,7 +185,7 @@ public class TailerImpl {
 			for (int i = 0; i < newData.length; i++) {
 				String source1 = (String) newData[i].get("source1");
 				String source2 = (String) newData[i].get("source2");
-				String time = (String) newData[i].get("time").toString();
+				String time = (String) newData[i].get("time");
 				long currentCount = (long) newData[i].get("currentCount");
 				
 				System.out.println(String.format("#%d - (%.11s) - %s and %s have accessed the same documents >" + maxCountOf_ep_multipleIPSameDoc_TooOften + " times", currentCount, time, source1, source2));
@@ -205,7 +204,7 @@ public class TailerImpl {
 			for (int i = 0; i < newData.length; i++) {
 				String source1 = (String) newData[i].get("source1");
 				String wantedDoc = (String) newData[i].get("wantedDoc");
-				String time = (String) newData[i].get("time").toString();
+				String time = (String) newData[i].get("time");
 				long currentCount = (long) newData[i].get("currentCount");
 
 				System.out.println(String.format("DEBUG #%d - (%.11s) - %s accessed by %s twice in a row", currentCount, time, wantedDoc, source1));
@@ -224,7 +223,7 @@ public class TailerImpl {
 			for (int i = 0; i < newData.length; i++) {
 				String source1 = (String) newData[i].get("source1");
 				String wantedDoc = (String) newData[i].get("wantedDoc");
-				String time = (String) newData[i].get("time").toString();
+				String time = (String) newData[i].get("time");
 				long currentCount = (long) newData[i].get("currentCount");
 				
 				System.out.println(String.format("#%d - (%.11s) - %s accessed by %s >" + maxCountOf_ep_singleIPSingleDoc_TooOften + " times", currentCount, time, wantedDoc, source1));
@@ -244,7 +243,7 @@ public class TailerImpl {
 				String source1 = (String) newData[i].get("source1");
 				String source2 = (String) newData[i].get("source2");
 				String wantedDoc = (String) newData[i].get("wantedDoc");
-				String time = (String) newData[i].get("time").toString();
+				String time = (String) newData[i].get("time");
 				long currentCount = (long) newData[i].get("currentCount");
 				
 				System.out.println(String.format("#%d - (%.11s) - %s accessed by %s and %s >" + maxCountOf_ep_multipleIPSingleDoc_TooOften + " times", currentCount, time, wantedDoc, source1, source2));
@@ -263,7 +262,7 @@ public class TailerImpl {
 		statement_ep_singleIPDifDoc.addListener((newData, oldData) -> {
 			for (int i = 0; i < newData.length; i++) {
 				String source1 = (String) newData[i].get("source1");
-				String time = (String) newData[i].get("time").toString();
+				String time = (String) newData[i].get("time");
 				long currentCount = (long) newData[i].get("currentCount");
 				
 				System.out.println(String.format("#%d - (%.11s) - %s accessed different documents >" + maxCountOf_ep_singleIPDifDoc + " times", currentCount, time, source1));
@@ -283,7 +282,7 @@ public class TailerImpl {
 		statement_ep_difIPSingleDoc.addListener((newData, oldData) -> {
 			for (int i = 0; i < newData.length; i++) {
 				String wantedDoc = (String) newData[i].get("wantedDoc");
-				String time = (String) newData[i].get("time").toString();
+				String time = (String) newData[i].get("time");
 				long currentCount = (long) newData[i].get("currentCount");
 				
 				System.out.println(String.format("#%d - (%.11s) - %s accessed >" + maxCountOf_ep_difIPSingleDoc + " times", currentCount, time, wantedDoc));
@@ -302,7 +301,7 @@ public class TailerImpl {
 
 		statement_ep_difIPDifDoc.addListener((newData, oldData) -> {
 			for (int i = 0; i < newData.length; i++) {
-				String time = (String) newData[i].get("time").toString();
+				String time = (String) newData[i].get("time");
 				long currentCount = (long) newData[i].get("currentCount");
 				
 				System.out.println(String.format("#%d - (%.11s) - General accesses >" + maxCountOf_ep_difIPDifDoc + " times", currentCount, time));
@@ -310,8 +309,15 @@ public class TailerImpl {
 		});
     }
     
-    
+    // initialize Esper for Combined events
 
+	static void initCombinedEvents(EPServiceProvider engine) {
+
+		
+		// Euer Code hier
+		
+		
+	}
 
 }   
 
