@@ -131,8 +131,8 @@ public class TailerImpl {
         cepAdm.createEPL("on safbus delete from safbus");
         cepAdm.createEPL("on safbus delete from fbus");
         
-        cepAdm.createEPL("on suspSources insert into att select suspSources.source as source from suspSources where suspSources.failrate>0.95").addListener(new attackListener());
-        cepAdm.createEPL("on suspSources2 insert into attu select suspSources2.source as source from suspSources2 where suspSources2.failrate>0.95").addListener(new attackListener());
+        cepAdm.createEPL("on suspSources insert into att select suspSources.source as source from suspSources where suspSources.failrate>0.95").addListener(new attackListener(engine));
+        cepAdm.createEPL("on suspSources2 insert into attu select suspSources2.source as source from suspSources2 where suspSources2.failrate>0.95").addListener(new attackListener(engine));
         
         //removing relevant data from window to avoid repeating alerts
         cepAdm.createEPL("on att delete from failWindow where failWindow.source =(select source from fbs)").addListener(new inputListener());
