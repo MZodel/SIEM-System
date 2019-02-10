@@ -5,7 +5,7 @@ import com.espertech.esper.client.*;
 
 
 public class TailerImpl {
-	
+	static infoHelper ftpInfoHelper = infoHelper.getInstance();
     public static void main(String argv[]) {
     	
 		EPServiceProvider engine = EPServiceProviderManager.getDefaultProvider();

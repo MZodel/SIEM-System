@@ -9,7 +9,7 @@ public class ftpListeners implements UpdateListener{
 		
 	}
 	protected String getCountAndTimestamp() {
-		return "";
+		return TailerImpl.ftpInfoHelper.getIncrementedCounter()+" "+TailerImpl.ftpInfoHelper.getTimeStamp();
 	}
 
 }
