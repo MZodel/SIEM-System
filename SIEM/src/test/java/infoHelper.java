@@ -4,7 +4,6 @@ import java.time.format.DateTimeFormatter;
 public class infoHelper {
 	  
 	  private static infoHelper instance;
-	  //private LocalTime timeStamp;
 	  private final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss");
 	  private final DateTimeFormatter dtfMilli = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
 

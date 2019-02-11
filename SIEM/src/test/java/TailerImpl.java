@@ -5,54 +5,36 @@ import com.espertech.esper.client.*;
 
 
 public class TailerImpl {
-	static infoHelper ftpInfoHelper = infoHelper.getInstance();
     public static void main(String argv[]) {
     	
+    	// initialize Esper engine
 		EPServiceProvider engine = EPServiceProviderManager.getDefaultProvider();
 
-    	// init Esper Engine and Patterns
+    	// configure Esper engine instance
 		initCombinedEvents(engine);
         initFTPbruteForce(engine);
         initHTTPflood(engine);
         
+        // get runtime
         EPRuntime epRunTime = engine.getEPRuntime();
         
-        // ####################################################### //
-        // 	Beachte die zwei Pfade zu den jeweiligen Log Dateien   //
-        // ####################################################### //
         
-        // start FTP listener
-        // 
-        String ftpFilePath = "C:/Program Files (x86)/FileZilla Server/Logs/FileZilla Server.log";
+        // start FTP Log listener
+        String ftpFilePath = "C:/Program Files (x86)/FileZilla Server/Logs/FileZilla Server.log"; // Dateipfad zur Filezilla Logdatei
         File ftpLogFile = new File(ftpFilePath);
-
         LogTailer ftpTailer = new LogTailer(ftpLogFile);
         LogTailerFTP ftpListener = new LogTailerFTP(epRunTime);
         ftpTailer.addListener(ftpListener);
-
-        //
-        //	Falls diesen Log Tailer nicht starten möchtest 
-        //	einfach die kommende Zeile mit "new Thread etc." auskommentieren
-        // 
         new Thread(ftpTailer).start();
 
 
-        // start HTTP Listener
-        //
-        String httpFilePath = "C:/Apache24/logs/access.log";
-        //String httpFilePath = "C:/xampp/apache/logs/access.log";
+        // start HTTP Log listener
+        String httpFilePath = "C:/Apache24/logs/access.log"; // Dateipfad zur HTTP Logdatei
         File httpLogFile = new File(httpFilePath);
-
         LogTailer httpTailer = new LogTailer(httpLogFile);
         LogTailerHTTP httpListener = new LogTailerHTTP(epRunTime);
         httpTailer.addListener(httpListener);
-
-        //
-        //	Falls diesen Log Tailer nicht starten möchtest 
-        //	einfach die kommende Zeile mit "new Thread etc." auskommentieren
-        // 
         new Thread(httpTailer).start();
-        
     }
     
     // initialize Esper FTP Brute Force events
@@ -299,7 +281,6 @@ public class TailerImpl {
 	static void initCombinedEvents(EPServiceProvider engine) {
 
 		engine.getEPAdministrator().getConfiguration().addEventType(attackers.class);
-		// Euer Code hier
 		
 		// Check if different IPs access a single document too often in a time frame
 
