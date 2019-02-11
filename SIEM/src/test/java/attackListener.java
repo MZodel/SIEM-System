@@ -15,7 +15,8 @@ public class attackListener extends ftpListeners implements UpdateListener {
     		System.out.println(getCountAndTimestamp()+" Source: "+newData[i].get("source")+" is an attacker");
     		engine.getEPRuntime().sendEvent(new attackers(newData[i].get("source")+"",
     										ftpInfoHelper.getTimeStamp(),
-    										ftpInfoHelper.getIncrementedCounter()));
+    										ftpInfoHelper.getIncrementedCounter(),
+    										"bruteforce"));
     	}    		
     }
 }

@@ -171,7 +171,7 @@ public class TailerImpl {
 				String time = (String) newData[i].get("time");
 				long currentCount = (long) newData[i].get("currentCount");
 				
-				engine.getEPRuntime().sendEvent(new attackers(source1, time, currentCount));
+				engine.getEPRuntime().sendEvent(new attackers(source1, time, currentCount, "httpFlood"));
 				System.out.println(String.format("#%d - (%.11s) - %s and %s have accessed the same documents >" + maxCountOf_ep_multipleIPSameDoc_TooOften + " times", currentCount, time, source1, source2));
 			}
 		});
@@ -210,7 +210,7 @@ public class TailerImpl {
 				String time = (String) newData[i].get("time");
 				long currentCount = (long) newData[i].get("currentCount");
 				
-				engine.getEPRuntime().sendEvent(new attackers(source1, time, currentCount));
+				engine.getEPRuntime().sendEvent(new attackers(source1, time, currentCount, "httpFlood"));
 				System.out.println(String.format("#%d - (%.11s) - %s accessed by %s >" + maxCountOf_ep_singleIPSingleDoc_TooOften + " times", currentCount, time, wantedDoc, source1));
 			}
 		});
@@ -231,7 +231,7 @@ public class TailerImpl {
 				String time = (String) newData[i].get("time");
 				long currentCount = (long) newData[i].get("currentCount");
 				
-				engine.getEPRuntime().sendEvent(new attackers(source1, time, currentCount));
+				engine.getEPRuntime().sendEvent(new attackers(source1, time, currentCount, "httpFlood"));
 				System.out.println(String.format("#%d - (%.11s) - %s accessed by %s and %s >" + maxCountOf_ep_multipleIPSingleDoc_TooOften + " times", currentCount, time, wantedDoc, source1, source2));
 			}
 		});
@@ -251,7 +251,7 @@ public class TailerImpl {
 				String time = (String) newData[i].get("time");
 				long currentCount = (long) newData[i].get("currentCount");
 				
-				engine.getEPRuntime().sendEvent(new attackers(source1, time, currentCount));
+				engine.getEPRuntime().sendEvent(new attackers(source1, time, currentCount, "httpFlood"));
 				System.out.println(String.format("#%d - (%.11s) - %s accessed different documents >" + maxCountOf_ep_singleIPDifDoc + " times", currentCount, time, source1));
 			}
 		});
@@ -274,6 +274,25 @@ public class TailerImpl {
 				System.out.println(String.format("#%d - (%.11s) - %s accessed >" + maxCountOf_ep_difIPSingleDoc + " times", currentCount, time, wantedDoc));
 			}
 		});
+		
+		
+		// Check if different IPs access different documents too often in a time frame
+
+				String timeBetweenArrivalOf_ep_difIPDifDoc = "5 sec";
+				String timeFrameOf_ep_difIPDifDoc = "1 min";
+				String maxCountOf_ep_difIPDifDoc = "50";
+				
+				String ep_difIPDifDoc = "select a.sourceip as source1, a.wantedDocument as wantedDoc, a.counter as currentCount, a.timeStamp as time from pattern [every a=EPLhttpEventConfig where timer:within(" + timeBetweenArrivalOf_ep_difIPDifDoc + ")]#time(" + timeFrameOf_ep_difIPDifDoc + ") having count(*) > " + maxCountOf_ep_difIPDifDoc;
+				EPStatement statement_ep_difIPDifDoc = engine.getEPAdministrator().createEPL(ep_difIPDifDoc);
+				
+				statement_ep_difIPDifDoc.addListener((newData, oldData) -> {
+					for (int i = 0; i < newData.length; i++) {
+						String time = (String) newData[i].get("time").toString();
+						long currentCount = (long) newData[i].get("currentCount");
+
+						System.out.println(String.format("#%d - (%.11s) - General accesses >" + maxCountOf_ep_difIPDifDoc + " times", currentCount, time));
+					}
+				});
     }
     
     // initialize Esper for Combined events
@@ -281,10 +300,8 @@ public class TailerImpl {
 	static void initCombinedEvents(EPServiceProvider engine) {
 
 		engine.getEPAdministrator().getConfiguration().addEventType(attackers.class);
-		
-		// Check if different IPs access a single document too often in a time frame
 
-
+		// Print any IP which has been identified as an attacker
 		String ep_combineAttackers = "select a.ip as ip, a.counter as currentCount, a.timeStamp as time from pattern [every a=attackers] group by a.ip";
 		EPStatement statement_ep_combineAttackers = engine.getEPAdministrator().createEPL(ep_combineAttackers);
 
@@ -295,6 +312,25 @@ public class TailerImpl {
 				long currentCount = (long) newData[i].get("currentCount");
 				
 				System.out.println(String.format("#%d - (%.11s) - %s is an attacker", currentCount, time, ip));
+			}
+		});
+		
+		
+		// Check if an IP attacks with both HTTP-Flood and Bruteforce
+		String timeBetweenArrivalOf_ep_compareAttackers = "1 min";
+		
+		String ep_compareAttackers = "select a.ip as ip, a.counter as currentCount, a.timeStamp as time, a.attackType as type1, b.attackType as type2 from pattern [every a=attackers -> b=attackers(a.ip = b.ip, a.attackType != b.attackType) where timer:within(" + timeBetweenArrivalOf_ep_compareAttackers + ")] group by a.ip";
+		EPStatement statement_ep_compareAttackers = engine.getEPAdministrator().createEPL(ep_compareAttackers);
+
+		statement_ep_compareAttackers.addListener((newData, oldData) -> {
+			for (int i = 0; i < newData.length; i++) {
+				String ip = (String) newData[i].get("ip");
+				String time = (String) newData[i].get("time");
+				long currentCount = (long) newData[i].get("currentCount");
+				String type1 = (String) newData[i].get("type1");
+				String type2 = (String) newData[i].get("type2");
+				
+				System.out.println(String.format("#%d - (%.11s) - %s is an attacker, using both %s and %s within %s", currentCount, time, ip, type1, type2, timeBetweenArrivalOf_ep_compareAttackers));
 			}
 		});
 	}
