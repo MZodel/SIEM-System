@@ -24,7 +24,7 @@ public class TailerImpl {
         LogTailer ftpTailer = new LogTailer(ftpLogFile);
         LogTailerFTP ftpListener = new LogTailerFTP(epRunTime);
         ftpTailer.addListener(ftpListener);
-        //new Thread(ftpTailer).start();
+        new Thread(ftpTailer).start();
 
         // start HTTP Log listener
         String httpFilePath = "C:/Apache24/logs/access.log"; // Dateipfad zur HTTP Logdatei

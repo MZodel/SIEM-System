@@ -15,7 +15,7 @@ public class ftpListeners implements UpdateListener{
 		
 	}
 	protected String getCountAndTimestamp() {
-		return ftpInfoHelper.getIncrementedCounter()+" "+ ftpInfoHelper.getTimeStamp();
+		return "#"+ftpInfoHelper.getIncrementedCounter()+" - ("+ ftpInfoHelper.getTimeStamp()+") - ";
 	}
 
 }
