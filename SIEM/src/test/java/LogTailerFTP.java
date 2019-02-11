@@ -5,7 +5,7 @@ public class LogTailerFTP implements LogTailerListener {
 	// Constants
 	String correctLogin = "Logged on";
 	String badLogin = "password incorrect!";
-	String userDeterminator = " user ";
+	String userDeterminator = "USER";
 	String isNotLoggedInDeterminator = "(not logged in)";
 	String ipAddress = null;
 	String ipEndDelimiter = ")>";
@@ -46,16 +46,16 @@ public class LogTailerFTP implements LogTailerListener {
 
 			// login attempt unsuccessful
 			if (line.contains(badLogin)) {
-				System.out.println("# " + ftpLoginCounter + "- Bad Login Event for User '" + userLogin
-						+ "' from Ip address: " + ipAddress);
+				//System.out.println("# " + ftpLoginCounter + "- Bad Login Event for User '" + userLogin
+				//		+ "' from Ip address: " + ipAddress);
 				cepFTP.sendEvent(new failedAttempt(ipAddress, userLogin));
 				ftpLoginCounter++;
 			}
 
 			// login attempt successful
 			else if (line.contains(correctLogin)) {
-				System.out.println("# " + ftpLoginCounter + "- Correct Login Event for User '" + userLogin
-						+ "' from Ip address: " + ipAddress);
+				//System.out.println("# " + ftpLoginCounter + "- Correct Login Event for User '" + userLogin
+				//		+ "' from Ip address: " + ipAddress);
 				cepFTP.sendEvent(new successAttempt(ipAddress, userLogin));
 				ftpLoginCounter++;
 			}
@@ -67,20 +67,20 @@ public class LogTailerFTP implements LogTailerListener {
 		String user = null;
 
 		int userChangeIndex = 50;
-		int notLoggedInIndex = 68;
+		int notLoggedInIndex = 67;
 
 		// User change, when already logged in
 		if (isUserLogedIn == true) {
 
 			user = currentLine.substring(userChangeIndex, currentLine.length());
-			System.out.println("Changing user to: '" + user + "'");
+			//System.out.println("Changing user to: '" + user + "'");
 		}
 
 		// login attempt from not logged in user
 		else if (isUserLogedIn == false) {
 
 			user = currentLine.substring(notLoggedInIndex, currentLine.length());
-			System.out.println("Login with username '" + user + "' detected");
+			//System.out.println("Login with username '" + user + "' detected");
 		}
 
 		return user;

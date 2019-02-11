@@ -38,7 +38,7 @@ public class LogTailer implements Runnable {
 
     public LogTailer() {
         this.timeoutUntilInterrupt = 0;
-        this.sleepTimer = 1000;
+        this.sleepTimer = 200;
     }
 
     /**

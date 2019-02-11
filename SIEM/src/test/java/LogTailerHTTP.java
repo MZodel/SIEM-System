@@ -10,31 +10,17 @@ public class LogTailerHTTP implements LogTailerListener {
         	this.cepHTTP = cep;
         }
 
-        String badLogin = "password incorrect!";
-        String correctLogin = "Logged on";
+        //String badLogin = "password incorrect!";
+        //String correctLogin = "Logged on";
 
         public void update(String line){
         	
         
             String[] splittedLine = line.split("\\s+");
 
-            /*
-            if (line.contains(badLogin)){
-                String ipAddr = splittedLine [1];
-                System.out.println("Bad Login Event" + "Ip address: " + ipAddr);
-
-            }
-
-            else if(line.contains(correctLogin)) {
-                String ipAddr = splittedLine [1]; // change this
-                System.out.println("Bad Login Event" + "Ip address: " + ipAddr);
-
-            }
-            */
+ 
             String ipAddr = splittedLine[0];
 
-            //Pattern p = Pattern.compile("\"([^\"]*)\"");
-            //Matcher m = p.matcher(line);
 
             String requestType = line.split("\"")[1].split("\\s+")[0];
             
@@ -42,11 +28,11 @@ public class LogTailerHTTP implements LogTailerListener {
             
             
 
-            System.out.println("HTTP Request IP Address: " + ipAddr);
-            System.out.println("HTTP requestType: " + requestType);
-            System.out.println("HTTP requestDoc: " + requestDoc);
+            //System.out.println("HTTP Request IP Address: " + ipAddr);
+            //System.out.println("HTTP requestType: " + requestType);
+            //System.out.println("HTTP requestDoc: " + requestDoc);
 
-            //System.out.println("HTTP whole line: " + line);
+            System.out.println("HTTP whole line: " + line);
             
             infoHelper helper = infoHelper.getInstance();
             

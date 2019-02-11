@@ -18,15 +18,13 @@ public class TailerImpl {
         // get runtime
         EPRuntime epRunTime = engine.getEPRuntime();
         
-        
         // start FTP Log listener
         String ftpFilePath = "C:/Program Files (x86)/FileZilla Server/Logs/FileZilla Server.log"; // Dateipfad zur Filezilla Logdatei
         File ftpLogFile = new File(ftpFilePath);
         LogTailer ftpTailer = new LogTailer(ftpLogFile);
         LogTailerFTP ftpListener = new LogTailerFTP(epRunTime);
         ftpTailer.addListener(ftpListener);
-        new Thread(ftpTailer).start();
-
+        //new Thread(ftpTailer).start();
 
         // start HTTP Log listener
         String httpFilePath = "C:/Apache24/logs/access.log"; // Dateipfad zur HTTP Logdatei
@@ -38,7 +36,7 @@ public class TailerImpl {
     }
     
     // initialize Esper FTP Brute Force events
-  
+
     static void initFTPbruteForce(EPServiceProvider engine) {
     	
     	//Configuration cepConfig = new Configuration();
@@ -152,7 +150,7 @@ public class TailerImpl {
 				String time = (String) newData[i].get("time");
 				long currentCount = (long) newData[i].get("currentCount");
 				
-				System.out.println(String.format("DEBUG #%d - (%.11s) - %s accessed at the same time by %s and %s", currentCount, time, wantedDoc, source1, source2));
+				//System.out.println(String.format("DEBUG #%d - (%.11s) - %s accessed at the same time by %s and %s", currentCount, time, wantedDoc, source1, source2));
 			}
 		});
 
@@ -191,7 +189,7 @@ public class TailerImpl {
 				String time = (String) newData[i].get("time");
 				long currentCount = (long) newData[i].get("currentCount");
 
-				System.out.println(String.format("DEBUG #%d - (%.11s) - %s accessed by %s twice in a row", currentCount, time, wantedDoc, source1));
+				//System.out.println(String.format("DEBUG #%d - (%.11s) - %s accessed by %s twice in a row", currentCount, time, wantedDoc, source1));
 			}
 		});
 
@@ -234,7 +232,7 @@ public class TailerImpl {
 				engine.getEPRuntime().sendEvent(new attackers(source1, time, currentCount, "httpFlood"));
 				System.out.println(String.format("#%d - (%.11s) - %s accessed by %s and %s >" + maxCountOf_ep_multipleIPSingleDoc_TooOften + " times", currentCount, time, wantedDoc, source1, source2));
 			}
-		});
+		});	
 
 
 		// Check if a single IP accesses different documents too often in a time frame
@@ -302,16 +300,17 @@ public class TailerImpl {
 		engine.getEPAdministrator().getConfiguration().addEventType(attackers.class);
 
 		// Print any IP which has been identified as an attacker
-		String ep_combineAttackers = "select a.ip as ip, a.counter as currentCount, a.timeStamp as time from pattern [every a=attackers] group by a.ip";
+		String ep_combineAttackers = "select a.ip as ip, a.counter as currentCount, a.attackType as type1, a.timeStamp as time from pattern [every a=attackers] group by a.ip";
 		EPStatement statement_ep_combineAttackers = engine.getEPAdministrator().createEPL(ep_combineAttackers);
 
 		statement_ep_combineAttackers.addListener((newData, oldData) -> {
 			for (int i = 0; i < newData.length; i++) {
 				String ip = (String) newData[i].get("ip");
 				String time = (String) newData[i].get("time");
+				String type1 = (String) newData[i].get("type1");
 				long currentCount = (long) newData[i].get("currentCount");
 				
-				System.out.println(String.format("#%d - (%.11s) - %s is an attacker", currentCount, time, ip));
+				System.out.println(String.format("#%d - (%.11s) - %s is an %s attacker", currentCount, time, ip, type1));
 			}
 		});
 		
