@@ -3,7 +3,7 @@ import com.espertech.esper.client.UpdateListener;
 
 public class ftpListeners implements UpdateListener{
 	
-	private infoHelper ftpInfoHelper;
+	protected infoHelper ftpInfoHelper;
 	
 	public ftpListeners() {
 		this.ftpInfoHelper =  infoHelper.getInstance();

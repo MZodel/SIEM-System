@@ -4,11 +4,11 @@ import com.espertech.esper.client.UpdateListener;
 
 public class attackListener extends ftpListeners implements UpdateListener {
 	EPServiceProvider engine;
-	private infoHelper ftpInfoHelper;
 	
 	public attackListener(EPServiceProvider engine) {
+		super();
 		this.engine=engine;
-		this.ftpInfoHelper = infoHelper.getInstance();
+		
 	}
 	public void update(EventBean[] newData, EventBean[] oldData) {
     	for(int i=0;i<newData.length;i++) {
