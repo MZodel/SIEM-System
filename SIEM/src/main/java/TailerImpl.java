@@ -38,22 +38,10 @@ public class TailerImpl {
     // initialize Esper FTP Brute Force events
 
     static void initFTPbruteForce(EPServiceProvider engine) {
-    	
-    	//Configuration cepConfig = new Configuration();
-		//cepConfig.addEventType("Success", successAttempt.class.getName());
-        //cepConfig.addEventType("Failed", failedAttempt.class.getName());
-        
-		//EPServiceProvider engine = EPServiceProviderManager.getProvider("CEP",cepConfig);
-		
-		//EPServiceProvider engine = EPServiceProviderManager.getDefaultProvider();
 
 		engine.getEPAdministrator().getConfiguration().addEventType("Success", successAttempt.class.getName());
 		engine.getEPAdministrator().getConfiguration().addEventType("Failed", failedAttempt.class.getName());
 
-		
-		
-		//EPRuntime cepRT = engine.getEPRuntime();
-		
 		
 		String epl = "create schema suspicious (source string, fails long)";
 		EPAdministrator cepAdm = engine.getEPAdministrator();engine.getEPAdministrator().createEPL(epl);
@@ -122,8 +110,6 @@ public class TailerImpl {
         
         cepAdm.createEPL("on suspSources2 delete from suspSources2");
         cepAdm.createEPL("on att select att.source from att");
-        
-        //return cepRT;
     }
     
     // initialize Esper HTTP Flood events
@@ -149,7 +135,7 @@ public class TailerImpl {
 				String wantedDoc = (String) newData[i].get("wantedDoc");
 				String time = (String) newData[i].get("time");
 				long currentCount = (long) newData[i].get("currentCount");
-				
+				//DEBUG output, not necessary during runtime:
 				//System.out.println(String.format("DEBUG #%d - (%.11s) - %s accessed at the same time by %s and %s", currentCount, time, wantedDoc, source1, source2));
 			}
 		});
@@ -188,7 +174,7 @@ public class TailerImpl {
 				String wantedDoc = (String) newData[i].get("wantedDoc");
 				String time = (String) newData[i].get("time");
 				long currentCount = (long) newData[i].get("currentCount");
-
+				//DEBUG output, not necessary during runtime:
 				//System.out.println(String.format("DEBUG #%d - (%.11s) - %s accessed by %s twice in a row", currentCount, time, wantedDoc, source1));
 			}
 		});
