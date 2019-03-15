@@ -25,22 +25,19 @@ public class LogTailerHTTP implements LogTailerListener {
             String requestType = line.split("\"")[1].split("\\s+")[0];
             
             String requestDoc = line.split("\"")[1].split("\\s+")[1];
-            
-            
 
-            //System.out.println("HTTP Request IP Address: " + ipAddr);
-            //System.out.println("HTTP requestType: " + requestType);
-            //System.out.println("HTTP requestDoc: " + requestDoc);
 
-            System.out.println("HTTP whole line: " + line);
+            //DEBUG Ausgabe:
+            //System.out.println("HTTP whole line: " + line);
             
             infoHelper helper = infoHelper.getInstance();
             
             String timeStamp = helper.getTimeStamp();
             long counter = helper.getIncrementedCounter();
             
-            System.out.println("TimeStamp: " + timeStamp);
-            System.out.println("Counter: " + counter);
+            //DEBUG Ausgabe:
+            //System.out.println("TimeStamp: " + timeStamp);
+            //System.out.println("Counter: " + counter);
 
 
             cepHTTP.sendEvent(new EPLhttpEventConfig(requestType, ipAddr, requestDoc, timeStamp, counter));
